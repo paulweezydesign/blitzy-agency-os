@@ -13,9 +13,11 @@
 ## Patterns & conventions
 - Configuration lives in `apps/api/src/config` and is registered with `ConfigModule.forFeature`; define schemas with Zod and return typed objects via `registerAs`.
 - Controllers and guards should use Fastify request/response types; Express helpers are not available.
+- **Important**: The Fastify version must match `@nestjs/platform-fastify`'s peer dependency (currently 5.4.0). Register Fastify plugins on the underlying instance via `app.getHttpAdapter().getInstance()` to avoid type conflicts.
 - Read tenant/user context only through `TenantContextService` instead of passing headers around or instantiating new ALS stores.
 - Shared business logic should graduate into `packages/*` modules as they are created; avoid deep relative imports that cross planned module seams.
 - Integrations and async workflows should publish internal events and enqueue BullMQ jobs per `docs/adr/0003-event-driven-integration.md` (workers live under `apps/workers` once scaffolded).
+
 
 ## Testing & validation
 - Follow the lightweight unit test style in `apps/api/src/health/health.controller.spec.ts` using Nest TestingModule and direct method assertions.

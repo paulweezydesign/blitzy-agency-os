@@ -6,7 +6,9 @@ const schema = z
     AUTH_ENABLED: z
       .string()
       .optional()
-      .transform((value) => (value === undefined ? undefined : value === 'true')),
+      .transform((value) =>
+        value === undefined ? undefined : value === 'true',
+      ),
     AUTH_AUDIENCE: z.string().min(1).optional(),
     AUTH_ISSUER: z.string().url().optional(),
     AUTH_SECRET: z.string().min(10).optional(),
