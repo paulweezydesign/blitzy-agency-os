@@ -1,0 +1,11 @@
+{
+  "name": "blitzy-agency-os",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "dev:api": "pnpm --filter api start:dev",
+    "build:api": "pnpm --filter api build",
+    "lint": "pnpm --recursive lint",
+    "test": "pnpm --recursive test"
+  }
+}
