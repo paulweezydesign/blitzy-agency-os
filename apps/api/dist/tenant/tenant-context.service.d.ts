@@ -1,12 +1,7 @@
-export interface RequestContext {
-    tenantId?: string;
-    userId?: string;
-    roles?: string[];
-    requestId?: string;
-    [key: string]: unknown;
-}
+import { TenantContext } from '@agencyos/context';
+export type RequestContext = TenantContext;
 export declare class TenantContextService {
-    private readonly storage;
+    private readonly store;
     run<T>(context: RequestContext, callback: () => T): T;
     get(): RequestContext;
     setTenant(tenantId?: string): void;

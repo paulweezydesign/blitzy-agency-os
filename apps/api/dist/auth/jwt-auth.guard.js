@@ -20,14 +20,13 @@ let JwtAuthGuard = class JwtAuthGuard {
         this.authService = authService;
         this.tenantContext = tenantContext;
     }
-    canActivate(context) {
+    async canActivate(context) {
         const request = context.switchToHttp().getRequest();
         const token = this.extractToken(request);
-        const principal = this.authService.verify(token);
+        const principal = await this.authService.verify(token);
         request.user = principal;
-        if (principal.tenant_id) {
-            this.tenantContext.setTenant(principal.tenant_id);
-        }
+        const tenantId = this.resolveTenantId(principal);
+        this.tenantContext.setTenant(tenantId);
         this.tenantContext.merge({
             userId: principal.sub,
             roles: Array.isArray(principal.permissions)
@@ -47,6 +46,17 @@ let JwtAuthGuard = class JwtAuthGuard {
             throw new common_1.UnauthorizedException('Invalid Authorization header');
         }
         return token;
+    }
+    resolveTenantId(principal) {
+        const tenantClaim = principal.tenant_id;
+        if (tenantClaim) {
+            return tenantClaim;
+        }
+        const customClaim = principal['https://agencyos.ai/tenant'];
+        if (typeof customClaim === 'string') {
+            return customClaim;
+        }
+        return undefined;
     }
 };
 exports.JwtAuthGuard = JwtAuthGuard;

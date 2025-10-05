@@ -6,6 +6,11 @@
     "dev:api": "pnpm --filter api start:dev",
     "build:api": "pnpm --filter api build",
     "lint": "pnpm --recursive lint",
-    "test": "pnpm --recursive test"
+    "test": "pnpm --filter @agencyos/context build && pnpm --recursive test"
+  },
+  "pnpm": {
+    "overrides": {
+      "fastify": "5.6.1"
+    }
   }
 }

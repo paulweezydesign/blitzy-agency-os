@@ -1,0 +1,13 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class WorkspacesService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findBySlug(slug: string) {
+    return this.prisma.workspace.findUnique({
+      where: { slug },
+    });
+  }
+}

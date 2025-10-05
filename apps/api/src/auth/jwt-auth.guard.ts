@@ -8,7 +8,7 @@ import { FastifyRequest } from 'fastify';
 import { AuthService, AuthenticatedPrincipal } from './auth.service';
 import { TenantContextService } from '../tenant/tenant-context.service';
 
-interface RequestWithUser extends FastifyRequest {
+export interface AuthenticatedRequest extends FastifyRequest {
   user?: AuthenticatedPrincipal;
 }
 
@@ -19,16 +19,15 @@ export class JwtAuthGuard implements CanActivate {
     private readonly tenantContext: TenantContextService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractToken(request);
 
-    const principal = this.authService.verify(token);
+    const principal = await this.authService.verify(token);
     request.user = principal;
 
-    if (principal.tenant_id) {
-      this.tenantContext.setTenant(principal.tenant_id);
-    }
+    const tenantId = this.resolveTenantId(principal);
+    this.tenantContext.setTenant(tenantId);
 
     this.tenantContext.merge({
       userId: principal.sub,
@@ -55,5 +54,19 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     return token;
+  }
+
+  private resolveTenantId(principal: AuthenticatedPrincipal): string | undefined {
+    const tenantClaim = principal.tenant_id;
+    if (tenantClaim) {
+      return tenantClaim;
+    }
+
+    const customClaim = principal['https://agencyos.ai/tenant'];
+    if (typeof customClaim === 'string') {
+      return customClaim;
+    }
+
+    return undefined;
   }
 }

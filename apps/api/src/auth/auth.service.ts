@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
 import { AuthConfig } from '../config/auth.config';
 
-export interface AuthenticatedPrincipal extends JwtPayload {
+export interface AuthenticatedPrincipal extends JWTPayload {
   sub?: string;
   tenant_id?: string;
   permissions?: string[];
@@ -11,9 +11,12 @@ export interface AuthenticatedPrincipal extends JwtPayload {
 
 @Injectable()
 export class AuthService {
+  private remoteJwks?: ReturnType<typeof createRemoteJWKSet>;
+  private remoteJwksUrl?: string;
+
   constructor(private readonly configService: ConfigService) {}
 
-  verify(token?: string): AuthenticatedPrincipal {
+  async verify(token?: string): Promise<AuthenticatedPrincipal> {
     const config = this.configService.get<AuthConfig>('auth');
 
     if (!config?.enabled) {
@@ -24,17 +27,44 @@ export class AuthService {
       throw new UnauthorizedException('Missing bearer token');
     }
 
-    if (!config.secret) {
-      throw new UnauthorizedException('AUTH_SECRET is required when auth is enabled');
-    }
+    const verificationOptions = {
+      audience: config.audience,
+      issuer: config.issuer,
+    } as const;
 
     try {
-      return jwt.verify(token, config.secret, {
-        audience: config.audience,
-        issuer: config.issuer,
-      }) as AuthenticatedPrincipal;
+      if (config.secret) {
+        const secret = new TextEncoder().encode(config.secret);
+        const { payload } = await jwtVerify(token, secret, verificationOptions);
+        return payload as AuthenticatedPrincipal;
+      }
+
+      const jwks = this.getRemoteJwks(config);
+      if (!jwks) {
+        throw new UnauthorizedException('JWKS configuration missing');
+      }
+
+      const { payload } = await jwtVerify(token, jwks, verificationOptions);
+      return payload as AuthenticatedPrincipal;
     } catch (error) {
       throw new UnauthorizedException('Unable to verify token');
     }
+  }
+
+  private getRemoteJwks(config: AuthConfig) {
+    if (!config.jwksUrl) {
+      return undefined;
+    }
+
+    if (this.remoteJwks && this.remoteJwksUrl === config.jwksUrl) {
+      return this.remoteJwks;
+    }
+
+    const jwks = createRemoteJWKSet(new URL(config.jwksUrl), {
+      cacheMaxAge: config.jwksCacheTtlMs,
+    });
+    this.remoteJwks = jwks;
+    this.remoteJwksUrl = config.jwksUrl;
+    return jwks;
   }
 }

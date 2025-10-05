@@ -1,12 +1,15 @@
 import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from 'jsonwebtoken';
-export interface AuthenticatedPrincipal extends JwtPayload {
+import { JWTPayload } from 'jose';
+export interface AuthenticatedPrincipal extends JWTPayload {
     sub?: string;
     tenant_id?: string;
     permissions?: string[];
 }
 export declare class AuthService {
     private readonly configService;
+    private remoteJwks?;
+    private remoteJwksUrl?;
     constructor(configService: ConfigService);
-    verify(token?: string): AuthenticatedPrincipal;
+    verify(token?: string): Promise<AuthenticatedPrincipal>;
+    private getRemoteJwks;
 }

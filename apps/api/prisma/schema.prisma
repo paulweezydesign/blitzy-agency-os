@@ -1,0 +1,84 @@
+// Prisma data model aligned with AgencyOS multi-tenant requirements.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  CLIENT
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  REVIEW
+  UAT
+  COMPLETED
+  ARCHIVED
+}
+
+model Workspace {
+  id        String             @id @default(cuid())
+  slug      String             @unique
+  name      String
+  timezone  String             @default("UTC")
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  members   WorkspaceMember[]
+  projects  Project[]
+
+  @@index([slug])
+}
+
+model User {
+  id           String             @id @default(cuid())
+  email        String             @unique
+  displayName  String?
+  avatarUrl    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  memberships  WorkspaceMember[]
+  invitationsSent WorkspaceMember[] @relation("WorkspaceMemberInviter")
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole
+  invitedById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy   User?         @relation("WorkspaceMemberInviter", fields: [invitedById], references: [id])
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  workspaceId  String
+  name         String
+  code         String        @unique
+  status       ProjectStatus @default(PLANNING)
+  budgetCents  BigInt?       @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+}

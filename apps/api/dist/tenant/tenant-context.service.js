@@ -8,33 +8,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantContextService = void 0;
 const common_1 = require("@nestjs/common");
-const node_async_hooks_1 = require("node:async_hooks");
+const context_1 = require("@agencyos/context");
 let TenantContextService = class TenantContextService {
-    storage = new node_async_hooks_1.AsyncLocalStorage();
+    store = new context_1.TenantContextStore();
     run(context, callback) {
-        return this.storage.run(context, callback);
+        return this.store.run(context, callback);
     }
     get() {
-        return this.storage.getStore() ?? {};
+        return this.store.get();
     }
     setTenant(tenantId) {
-        const store = this.storage.getStore();
-        if (store) {
-            store.tenantId = tenantId;
-        }
+        this.store.setTenant(tenantId);
     }
     setUser(userId, roles) {
-        const store = this.storage.getStore();
-        if (store) {
-            store.userId = userId;
-            store.roles = roles;
-        }
+        this.store.setUser(userId, roles);
     }
     merge(partial) {
-        const store = this.storage.getStore();
-        if (store) {
-            Object.assign(store, partial);
-        }
+        this.store.merge(partial);
     }
 };
 exports.TenantContextService = TenantContextService;

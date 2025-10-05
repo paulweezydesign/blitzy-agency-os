@@ -94,7 +94,23 @@ _Reference: target_tech_spec.pdf §2.2.1–§2.2.2, §5.2.2, §5.4.4, §6.2.1–
 
 ### Next Targets
 
-- Integrate Prisma with tenant context middleware and add initial schema.
-- Replace placeholder JWT verification with Auth0 JWKS validation and caching.
-- Add request logging/OpenTelemetry instrumentation and structured audit middleware.
-- Scaffold worker package (`apps/workers`) with shared tenant/auth context propagation.
+- Persist audit trail events to PostgreSQL and expose query endpoints.
+- Implement granular permission mapping (feature-specific policies) and decorator utilities.
+- Wire Workspaces API into client portal flows and add e2e coverage.
+- Extend worker runtime with named processors for integrations and error retry policies.
+
+
+## 10. Milestone B Progress (2025-10-05)
+
+- [x] Added Prisma ORM scaffolding with PostgreSQL schema for workspaces, users, memberships, and projects.
+- [x] Registered global Prisma module with tenant-aware AsyncLocalStorage hook.
+- [x] Introduced workspaces service to demonstrate repository usage and unit coverage.
+- [x] Exposed `pnpm prisma:generate` workspace script and `.env.example` for local DB setup.
+
+
+## 11. Milestone C Progress (2025-10-05)
+
+- [x] Upgraded authentication to JWKS-backed verification with Auth0-compatible config.
+- [x] Added structured logging via `nestjs-pino`, request/trace interceptors, and audit logging.
+- [x] Introduced Prisma-backed RBAC service plus protected `/workspaces/:slug` controller.
+- [x] Factored tenant context into shared package and bootstrapped BullMQ worker runtime.

@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -6,6 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import helmet from '@fastify/helmet';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -23,7 +23,8 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
   const port = config.getOrThrow<number>('app.port');
-  const logger = new Logger('Bootstrap');
+  const logger = app.get(Logger);
+  app.useLogger(logger);
 
   await app.listen({ port, host: '0.0.0.0' });
   logger.log(`API listening on http://0.0.0.0:${port}`);

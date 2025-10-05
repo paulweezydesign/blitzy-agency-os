@@ -1,45 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { AsyncLocalStorage } from 'node:async_hooks';
+import {
+  TenantContext,
+  TenantContextStore,
+} from '@agencyos/context';
 
-export interface RequestContext {
-  tenantId?: string;
-  userId?: string;
-  roles?: string[];
-  requestId?: string;
-  [key: string]: unknown;
-}
+export type RequestContext = TenantContext;
 
 @Injectable()
 export class TenantContextService {
-  private readonly storage = new AsyncLocalStorage<RequestContext>();
+  private readonly store = new TenantContextStore();
 
   run<T>(context: RequestContext, callback: () => T): T {
-    return this.storage.run(context, callback);
+    return this.store.run(context, callback);
   }
 
   get(): RequestContext {
-    return this.storage.getStore() ?? {};
+    return this.store.get();
   }
 
   setTenant(tenantId?: string) {
-    const store = this.storage.getStore();
-    if (store) {
-      store.tenantId = tenantId;
-    }
+    this.store.setTenant(tenantId);
   }
 
   setUser(userId?: string, roles?: string[]) {
-    const store = this.storage.getStore();
-    if (store) {
-      store.userId = userId;
-      store.roles = roles;
-    }
+    this.store.setUser(userId, roles);
   }
 
   merge(partial: Partial<RequestContext>) {
-    const store = this.storage.getStore();
-    if (store) {
-      Object.assign(store, partial);
-    }
+    this.store.merge(partial);
   }
 }
