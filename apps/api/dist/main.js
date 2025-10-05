@@ -15,12 +15,16 @@ async function bootstrap() {
     }), {
         bufferLogs: true,
     });
-    await app.register(helmet_1.default, { contentSecurityPolicy: false });
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    await fastifyInstance.register(helmet_1.default, { contentSecurityPolicy: false });
     const config = app.get(config_1.ConfigService);
     const port = config.getOrThrow('app.port');
     const logger = new common_1.Logger('Bootstrap');
     await app.listen({ port, host: '0.0.0.0' });
     logger.log(`API listening on http://0.0.0.0:${port}`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+    console.error('Failed to start application:', err);
+    process.exit(1);
+});
 //# sourceMappingURL=main.js.map

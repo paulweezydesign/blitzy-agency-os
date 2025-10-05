@@ -7,7 +7,7 @@ const schema = zod_1.z
     AUTH_ENABLED: zod_1.z
         .string()
         .optional()
-        .transform((value) => (value === undefined ? undefined : value === 'true')),
+        .transform((value) => value === undefined ? undefined : value === 'true'),
     AUTH_AUDIENCE: zod_1.z.string().min(1).optional(),
     AUTH_ISSUER: zod_1.z.string().url().optional(),
     AUTH_SECRET: zod_1.z.string().min(10).optional(),

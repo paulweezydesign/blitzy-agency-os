@@ -4,7 +4,9 @@ const config_1 = require("@nestjs/config");
 const zod_1 = require("zod");
 const schema = zod_1.z
     .object({
-    NODE_ENV: zod_1.z.enum(['development', 'test', 'production']).default('development'),
+    NODE_ENV: zod_1.z
+        .enum(['development', 'test', 'production'])
+        .default('development'),
     PORT: zod_1.z.coerce.number().int().positive().default(3000),
 })
     .transform((value) => ({

@@ -25,7 +25,9 @@ export class AuthService {
     }
 
     if (!config.secret) {
-      throw new UnauthorizedException('AUTH_SECRET is required when auth is enabled');
+      throw new UnauthorizedException(
+        'AUTH_SECRET is required when auth is enabled',
+      );
     }
 
     try {

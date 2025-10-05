@@ -19,7 +19,9 @@ async function bootstrap() {
     },
   );
 
-  await app.register(helmet, { contentSecurityPolicy: false });
+  // Register helmet on the underlying Fastify instance
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  await fastifyInstance.register(helmet, { contentSecurityPolicy: false });
 
   const config = app.get(ConfigService);
   const port = config.getOrThrow<number>('app.port');
@@ -29,4 +31,7 @@ async function bootstrap() {
   logger.log(`API listening on http://0.0.0.0:${port}`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Failed to start application:', err);
+  process.exit(1);
+});
